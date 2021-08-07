@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "lazy.moheads.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "LivingEntityMixin"
+  ]
+}
