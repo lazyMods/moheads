@@ -1,16 +1,18 @@
 package lazy.moheads.head
 
 import com.google.gson.GsonBuilder
-import lazy.moheads.utils.with
-import lazy.moheads.utils.withIntArray
-import lazy.moheads.utils.withList
-import lazy.moheads.utils.withString
+import lazy.moheads.utils.*
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.animal.Cat
+import net.minecraft.world.entity.animal.Sheep
+import net.minecraft.world.entity.animal.axolotl.Axolotl
+import net.minecraft.world.entity.animal.horse.Horse
+import net.minecraft.world.entity.animal.horse.Llama
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import java.io.InputStreamReader
@@ -31,7 +33,33 @@ object HeadUtils {
     }
 
     fun headFor(entity: Entity): Pair<Boolean, ItemStack> {
-        val regKey = EntityType.getKey(entity.type).path
+        var regKey = EntityType.getKey(entity.type).path
+
+        when(regKey){
+            "sheep" -> {
+                val sheep = entity as Sheep
+                regKey = sheep.color.name.lowercase() + "_sheep"
+            }
+            "axolotl" -> {
+                val axolotl = entity as Axolotl
+                regKey = axolotl.variant.getName() + "_axolotl"
+            }
+            "cat" -> {
+                val cat = entity as Cat
+                val variant = cat.resourceLocation.path.split('/').last().split(".")[0]
+                regKey = variant + "_cat"
+            }
+            "horse" -> {
+                val horse = entity as Horse
+                regKey = horse.variant.name.lowercase() + "_horse"
+            }
+            "llama" -> {
+                val llama = entity as Llama
+                regKey = LlamaVariants.fromId(llama.variant) + "_llama"
+            }
+        }
+
+        println("$regKey and contains ${containsKey(regKey)}")
         if (!containsKey(regKey)) return FALSE
         val (regName, _, uuid, hash) = get(regKey)
         if (isMcHead(regKey)) return Pair(true, getMcHead(regKey))

@@ -15,7 +15,7 @@ class LivingEntityMixin {
     @Inject(method = ["dropAllDeathLoot"], at = [At("TAIL")])
     fun dropAllDeathLoot(source: DamageSource, ci: CallbackInfo?) {
         val result = LivingMobDrops.EVENT.invoker().addDrops((this as LivingEntity), source)
-        if (source.entity != null && source.entity is Player) {
+        if (source.entity != null) {
             for (itemEntity in result) {
                 source.entity!!.level.addFreshEntity(itemEntity)
             }
