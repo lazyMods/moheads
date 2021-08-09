@@ -9,10 +9,16 @@ import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.animal.Cat
+import net.minecraft.world.entity.animal.Parrot
+import net.minecraft.world.entity.animal.Rabbit
 import net.minecraft.world.entity.animal.Sheep
 import net.minecraft.world.entity.animal.axolotl.Axolotl
 import net.minecraft.world.entity.animal.horse.Horse
 import net.minecraft.world.entity.animal.horse.Llama
+import net.minecraft.world.entity.animal.horse.TraderLlama
+import net.minecraft.world.entity.monster.ZombieVillager
+import net.minecraft.world.entity.npc.Villager
+import net.minecraft.world.entity.npc.VillagerProfession
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import java.io.InputStreamReader
@@ -20,8 +26,7 @@ import java.io.InputStreamReader
 
 object HeadUtils {
 
-    val headData: MutableList<HeadData> = mutableListOf()
-    val FALSE = Pair(false, ItemStack.EMPTY)
+    private val headData: MutableList<HeadData> = mutableListOf()
 
     fun load(mc: Minecraft) {
         val gson = GsonBuilder().create()
@@ -32,39 +37,29 @@ object HeadUtils {
         }
     }
 
-    fun headFor(entity: Entity): Pair<Boolean, ItemStack> {
+    fun headFor(entity: Entity, looting: Int): ItemStack {
         var regKey = EntityType.getKey(entity.type).path
 
-        when(regKey){
-            "sheep" -> {
-                val sheep = entity as Sheep
-                regKey = sheep.color.name.lowercase() + "_sheep"
-            }
-            "axolotl" -> {
-                val axolotl = entity as Axolotl
-                regKey = axolotl.variant.getName() + "_axolotl"
-            }
-            "cat" -> {
-                val cat = entity as Cat
-                val variant = cat.resourceLocation.path.split('/').last().split(".")[0]
-                regKey = variant + "_cat"
-            }
-            "horse" -> {
-                val horse = entity as Horse
-                regKey = horse.variant.name.lowercase() + "_horse"
-            }
-            "llama" -> {
-                val llama = entity as Llama
-                regKey = LlamaVariants.fromId(llama.variant) + "_llama"
-            }
+        when (regKey) {
+            "sheep" -> regKey = (entity as Sheep).color.name.lowercase() + "_sheep"
+            "axolotl" -> regKey = (entity as Axolotl).variant.getName() + "_axolotl"
+            "cat" -> regKey = (entity as Cat).resourceLocation.path.split('/').last().split(".")[0] + "_cat"
+            "horse" -> regKey = (entity as Horse).variant.name.lowercase() + "_horse"
+            "llama" -> regKey = LlamaVariants.fromId((entity as Llama).variant) + "_llama"
+            "trader_llama" -> regKey = LlamaVariants.fromId((entity as TraderLlama).variant) + "_trader_llama"
+            "parrot" -> regKey = ParrotVariants.fromId((entity as Parrot).variant) + "_parrot"
+            "rabbit" -> regKey = RabbitVariants.fromId((entity as Rabbit).rabbitType) + "_rabbit"
+            "villager" -> regKey = getVillagerName((entity as Villager).villagerData.profession, "villager")
+            "zombie_villager" -> regKey = "zombie_" + getVillagerName((entity as ZombieVillager).villagerData.profession, "zombie_villager")
         }
 
-        println("$regKey and contains ${containsKey(regKey)}")
-        if (!containsKey(regKey)) return FALSE
-        val (regName, _, uuid, hash) = get(regKey)
-        if (isMcHead(regKey)) return Pair(true, getMcHead(regKey))
-        val playerHead = createHead(regName, uuid, hash)
-        return Pair(true, playerHead)
+        if (!containsKey(regKey)) return ItemStack.EMPTY
+
+        val (regName, chance, uuid, hash) = get(regKey)
+        val headChance = chance + (0.05 + (looting / 100))
+        if (entity.level.random.nextDouble() > headChance) return ItemStack.EMPTY
+
+        return createHead(regName, uuid, hash)
     }
 
     private fun containsKey(key: String): Boolean {
@@ -75,30 +70,20 @@ object HeadUtils {
         return headData.first { it.regName == key }
     }
 
-    private fun isMcHead(key: String): Boolean {
-        return key == "creeper" || key == "zombie" || key == "skeleton"
-    }
-
-    private fun getMcHead(key: String): ItemStack {
-        when (key) {
-            "creeper" -> return ItemStack(Items.CREEPER_HEAD)
-            "zombie" -> return ItemStack(Items.CREEPER_HEAD)
-            "skeleton" -> return ItemStack(Items.CREEPER_HEAD)
-        }
-        return ItemStack.EMPTY
-    }
-
     private fun createHead(regName: String, uuid: String, hash: String): ItemStack {
         val head = ItemStack(Items.PLAYER_HEAD)
 
         val tag = CompoundTag()
             .withIntArray("Id", stringToIntList(uuid))
-            .with("Properties", CompoundTag()
-                .withList("textures", ListTag()
-                    .with(CompoundTag()
-                        .withString("Value", hash)
+            .with(
+                "Properties", CompoundTag()
+                    .withList(
+                        "textures", ListTag()
+                            .with(
+                                CompoundTag()
+                                    .withString("Value", hash)
+                            )
                     )
-                )
             )
 
         head.addTagElement("SkullOwner", tag)
@@ -114,6 +99,13 @@ object HeadUtils {
     }
 
     private fun styleRegName(regName: String): String {
-        return regName.replace("_", " ").replaceFirstChar { s -> s.uppercase() }
+        val worlds = regName.split("_")
+        val builder = StringBuilder()
+        worlds.forEach { builder.append(it.replaceFirstChar { char -> char.uppercase() }).append(" ") }
+        return builder.toString()
+    }
+
+    private fun getVillagerName(profession: VillagerProfession, fallback: String): String {
+        return if (profession.name != "none") profession.name else fallback
     }
 }

@@ -1,6 +1,5 @@
 package lazy.moheads
 
-import com.google.common.collect.Lists
 import lazy.moheads.event.LivingMobDrops
 import lazy.moheads.head.HeadUtils
 import net.fabricmc.api.ModInitializer
@@ -9,6 +8,7 @@ import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.enchantment.EnchantmentHelper
 import java.io.File
 import java.io.InputStream
 
@@ -23,14 +23,13 @@ object MoHeads : ModInitializer {
 
         LivingMobDrops.EVENT.register(object : LivingMobDrops {
             override fun addDrops(livingEntity: LivingEntity, damageSource: DamageSource): List<ItemEntity> {
-                if(damageSource.entity is Player){
-                    val list = mutableListOf<ItemEntity>()
-                    val itemEntity = ItemEntity(livingEntity.level, livingEntity.x, livingEntity.y, livingEntity.z, HeadUtils.headFor(livingEntity).second)
-                    list.add(itemEntity)
-                    println(itemEntity)
-                    return list
+                val empty = emptyList<ItemEntity>()
+                if (livingEntity.isBaby) return empty
+                if (damageSource.entity is Player) {
+                    val looting = EnchantmentHelper.getMobLooting(damageSource.entity as Player)
+                    return listOf(ItemEntity(livingEntity.level, livingEntity.x, livingEntity.y, livingEntity.z, HeadUtils.headFor(livingEntity, looting)))
                 }
-                return Lists.newArrayList()
+                return empty
             }
         })
     }
