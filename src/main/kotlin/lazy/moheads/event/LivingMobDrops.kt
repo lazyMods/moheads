@@ -1,6 +1,5 @@
 package lazy.moheads.event
 
-import com.google.common.collect.Lists
 import net.fabricmc.fabric.api.event.Event
 import net.fabricmc.fabric.api.event.EventFactory
 import net.minecraft.world.damagesource.DamageSource
@@ -22,7 +21,7 @@ interface LivingMobDrops {
                             return result
                         }
                     }
-                    return Lists.newArrayList()
+                    return emptyList()
                 }
             }
         }
