@@ -5,6 +5,7 @@ import lazy.moheads.utils.*
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
+import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
@@ -60,7 +61,8 @@ object HeadUtils {
             "parrot" -> regKey = ParrotVariants.fromId((entity as Parrot).variant) + "_parrot"
             "rabbit" -> regKey = RabbitVariants.fromId((entity as Rabbit).rabbitType) + "_rabbit"
             "villager" -> regKey = getVillagerName((entity as Villager).villagerData.profession, "villager")
-            "zombie_villager" -> regKey = "zombie_" + getVillagerName((entity as ZombieVillager).villagerData.profession, "zombie_villager")
+            "zombie_villager" -> regKey =
+                "zombie_" + getVillagerName((entity as ZombieVillager).villagerData.profession, "zombie_villager")
         }
 
         if (!containsKey(regKey)) return ItemStack.EMPTY
@@ -73,20 +75,9 @@ object HeadUtils {
     }
 
     fun playerHead(player: Player): ItemStack {
-        val playerEndpoint = "https://api.mojang.com/users/profiles/minecraft/"
-        val skinEndpoint = "https://sessionserver.mojang.com/session/minecraft/profile/"
-
-        var username = ""
-        if (DEBUG) username = "kinita69" else player.name.string.lowercase()
-
-        val playerEndpointContent = pageContentToString(playerEndpoint + username)
-        if (playerEndpointContent.isEmpty()) return ItemStack.EMPTY
-        val playerData = gson.fromJson(playerEndpointContent, PlayerResponse::class.java)
-        val skinEndpointContent = pageContentToString(skinEndpoint + playerData.id)
-        if (skinEndpointContent.isEmpty()) return ItemStack.EMPTY
-        val skinData = gson.fromJson(skinEndpointContent, SkinResponse::class.java)
-
-        return createHead(username, uuidToIntListString(skinData.id), skinData.properties[0].value)
+        val skinData = PlayerUtils.getSkinData(gson, if(DEBUG) "420616b4-af00-493b-ae80-cde41186e299" else player.stringUUID)
+        if(skinData.id == "") return ItemStack.EMPTY
+        return createHead(skinData.name, uuidToIntListString(skinData.id), skinData.properties[0].value)
     }
 
     private fun containsKey(key: String): Boolean {
@@ -136,11 +127,6 @@ object HeadUtils {
         return if (profession.name != "none") profession.name else fallback
     }
 
-    private fun pageContentToString(url: String): String {
-        val scanner = Scanner(URL(url).openStream(), StandardCharsets.UTF_8.toString())
-        scanner.useDelimiter("\\A")
-        return if (scanner.hasNext()) scanner.next() else ""
-    }
 
     private fun uuidToIntListString(uuid: String): String {
         val intList = mutableListOf<Int>()
