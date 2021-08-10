@@ -11,7 +11,7 @@ interface LivingMobDrops {
     fun addDrops(livingEntity: LivingEntity, damageSource: DamageSource): List<ItemEntity>
 
     companion object {
-        val EVENT: Event<LivingMobDrops> = EventFactory.createArrayBacked(LivingMobDrops::class.java)
+        val event: Event<LivingMobDrops> = EventFactory.createArrayBacked(LivingMobDrops::class.java)
         { listeners ->
             object : LivingMobDrops {
                 override fun addDrops(livingEntity: LivingEntity, damageSource: DamageSource): List<ItemEntity> {
