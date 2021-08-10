@@ -19,14 +19,24 @@ import net.minecraft.world.entity.animal.horse.TraderLlama
 import net.minecraft.world.entity.monster.ZombieVillager
 import net.minecraft.world.entity.npc.Villager
 import net.minecraft.world.entity.npc.VillagerProfession
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import java.io.InputStreamReader
+import java.lang.Long
+import java.net.URL
+import java.nio.charset.StandardCharsets
+import java.util.*
+import kotlin.Boolean
+import kotlin.Int
+import kotlin.String
 
 
 object HeadUtils {
 
+    private val gson = GsonBuilder().create()
     private val headData: MutableList<HeadData> = mutableListOf()
+    private const val DEBUG = false
 
     fun load(mc: Minecraft) {
         val gson = GsonBuilder().create()
@@ -60,6 +70,23 @@ object HeadUtils {
         if (entity.level.random.nextDouble() > headChance) return ItemStack.EMPTY
 
         return createHead(regName, uuid, hash)
+    }
+
+    fun playerHead(player: Player): ItemStack {
+        val playerEndpoint = "https://api.mojang.com/users/profiles/minecraft/"
+        val skinEndpoint = "https://sessionserver.mojang.com/session/minecraft/profile/"
+
+        var username = ""
+        if (DEBUG) username = "kinita69" else player.name.string.lowercase()
+
+        val playerEndpointContent = pageContentToString(playerEndpoint + username)
+        if (playerEndpointContent.isEmpty()) return ItemStack.EMPTY
+        val playerData = gson.fromJson(playerEndpointContent, PlayerResponse::class.java)
+        val skinEndpointContent = pageContentToString(skinEndpoint + playerData.id)
+        if (skinEndpointContent.isEmpty()) return ItemStack.EMPTY
+        val skinData = gson.fromJson(skinEndpointContent, SkinResponse::class.java)
+
+        return createHead(username, uuidToIntListString(skinData.id), skinData.properties[0].value)
     }
 
     private fun containsKey(key: String): Boolean {
@@ -107,5 +134,21 @@ object HeadUtils {
 
     private fun getVillagerName(profession: VillagerProfession, fallback: String): String {
         return if (profession.name != "none") profession.name else fallback
+    }
+
+    private fun pageContentToString(url: String): String {
+        val scanner = Scanner(URL(url).openStream(), StandardCharsets.UTF_8.toString())
+        scanner.useDelimiter("\\A")
+        return if (scanner.hasNext()) scanner.next() else ""
+    }
+
+    private fun uuidToIntListString(uuid: String): String {
+        val intList = mutableListOf<Int>()
+        var index = 0
+        while (index < uuid.length) {
+            intList.add(Long.valueOf(uuid.substring(index, uuid.length.coerceAtMost(index + 8)), 16).toInt())
+            index += 8
+        }
+        return intList.toString()
     }
 }
