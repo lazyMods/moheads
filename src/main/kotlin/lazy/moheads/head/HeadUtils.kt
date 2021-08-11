@@ -5,8 +5,8 @@ import lazy.moheads.utils.*
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
-import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TextComponent
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.animal.Cat
@@ -25,19 +25,20 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import java.io.InputStreamReader
 import java.lang.Long
-import java.net.URL
-import java.nio.charset.StandardCharsets
-import java.util.*
 import kotlin.Boolean
 import kotlin.Int
 import kotlin.String
+import kotlin.emptyArray
 
 
 object HeadUtils {
 
-    private val gson = GsonBuilder().create()
+    private const val DEBUG = true
+
     private val headData: MutableList<HeadData> = mutableListOf()
-    private const val DEBUG = false
+    private val playerCache: MutableMap<String, SkinResponse> = mutableMapOf()
+
+    private val gson = GsonBuilder().create()
 
     fun load(mc: Minecraft) {
         val gson = GsonBuilder().create()
@@ -75,8 +76,8 @@ object HeadUtils {
     }
 
     fun playerHead(player: Player): ItemStack {
-        val skinData = PlayerUtils.getSkinData(gson, if(DEBUG) "420616b4-af00-493b-ae80-cde41186e299" else player.stringUUID)
-        if(skinData.id == "") return ItemStack.EMPTY
+        val skinData = playerCache.getOrDefault(player.stringUUID, SkinResponse("", "", emptyArray()))
+        if (skinData.id == "") return ItemStack.EMPTY
         return createHead(skinData.name, uuidToIntListString(skinData.id), skinData.properties[0].value)
     }
 
@@ -136,5 +137,22 @@ object HeadUtils {
             index += 8
         }
         return intList.toString()
+    }
+
+    fun addPlayerToCache(entity: Entity, world: ServerLevel) {
+        if (entity is Player) {
+            if (!playerCache.containsKey(entity.stringUUID)) {
+                val skinData = PlayerUtils.getSkinData(gson, if (DEBUG) "420616b4-af00-493b-ae80-cde41186e299" else entity.stringUUID)
+                playerCache[entity.stringUUID] = skinData
+            }
+        }
+    }
+
+    fun removePlayerFromCache(entity: Entity, world: ServerLevel) {
+        if (entity is Player) {
+            if (playerCache.containsKey(entity.stringUUID)) {
+                playerCache.remove(entity.stringUUID)
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ package lazy.moheads
 import lazy.moheads.event.LivingMobDrops
 import lazy.moheads.head.HeadUtils
 import net.fabricmc.api.ModInitializer
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.item.ItemEntity
@@ -16,6 +17,10 @@ object MoHeads : ModInitializer {
     const val MOD_ID = "moheads"
 
     override fun onInitialize() {
+
+        ServerEntityEvents.ENTITY_LOAD.register(HeadUtils::addPlayerToCache)
+        ServerEntityEvents.ENTITY_UNLOAD.register(HeadUtils::removePlayerFromCache)
+
         LivingMobDrops.event.register(object : LivingMobDrops {
             override fun addDrops(livingEntity: LivingEntity, damageSource: DamageSource): List<ItemEntity> {
                 val empty = emptyList<ItemEntity>()
