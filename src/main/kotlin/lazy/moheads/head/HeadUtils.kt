@@ -33,7 +33,7 @@ import kotlin.emptyArray
 
 object HeadUtils {
 
-    private const val DEBUG = true
+    private const val DEBUG = false
 
     private val headData: MutableList<HeadData> = mutableListOf()
     private val playerCache: MutableMap<String, SkinResponse> = mutableMapOf()

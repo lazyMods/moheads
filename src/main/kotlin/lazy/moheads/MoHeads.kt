@@ -24,7 +24,8 @@ object MoHeads : ModInitializer {
         LivingMobDrops.event.register(object : LivingMobDrops {
             override fun addDrops(livingEntity: LivingEntity, damageSource: DamageSource): List<ItemEntity> {
                 val empty = emptyList<ItemEntity>()
-                if (livingEntity is Player) return listOf(ItemEntity(livingEntity.level, livingEntity.x, livingEntity.y, livingEntity.z, HeadUtils.playerHead(livingEntity)))
+                val pos = livingEntity.position()
+                if (livingEntity is Player) return listOf(ItemEntity(livingEntity.level, pos.x, pos.y, pos.z, HeadUtils.playerHead(livingEntity)))
                 if (livingEntity.isBaby) return empty
                 if (damageSource.entity is Player) {
                     val looting = EnchantmentHelper.getMobLooting(damageSource.entity as Player)
