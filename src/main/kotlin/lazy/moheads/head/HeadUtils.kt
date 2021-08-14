@@ -2,10 +2,10 @@ package lazy.moheads.head
 
 import com.google.gson.GsonBuilder
 import lazy.moheads.utils.*
-import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.network.chat.TextComponent
+import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
@@ -40,8 +40,7 @@ object HeadUtils {
 
     private val gson = GsonBuilder().create()
 
-    fun load(mc: Minecraft) {
-        val gson = GsonBuilder().create()
+    fun load(mc: MinecraftServer) {
         mc.resourceManager.listResources("heads/") { s -> s.endsWith(".json") }.forEach {
             val inputStream = mc.resourceManager.getResource(it).inputStream
             val data = gson.fromJson(InputStreamReader(inputStream), HeadData::class.java)
@@ -106,6 +105,9 @@ object HeadUtils {
             )
 
         head.addTagElement("SkullOwner", tag)
+
+        println("head with $tag")
+
         head.hoverName = TextComponent(styleRegName(regName))
         return head
     }

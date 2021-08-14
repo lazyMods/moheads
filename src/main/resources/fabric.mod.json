@@ -21,12 +21,6 @@
         "adapter": "kotlin",
         "value": "lazy.moheads.MoHeads"
       }
-    ],
-    "client": [
-      {
-        "adapter": "kotlin",
-        "value": "lazy.moheads.MoHeadsClient"
-      }
     ]
   },
   "mixins": [

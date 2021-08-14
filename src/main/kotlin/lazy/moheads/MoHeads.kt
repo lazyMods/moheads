@@ -4,6 +4,7 @@ import lazy.moheads.event.LivingMobDrops
 import lazy.moheads.head.HeadUtils
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.item.ItemEntity
@@ -18,6 +19,7 @@ object MoHeads : ModInitializer {
 
     override fun onInitialize() {
 
+        ServerLifecycleEvents.SERVER_STARTED.register(HeadUtils::load)
         ServerEntityEvents.ENTITY_LOAD.register(HeadUtils::addPlayerToCache)
         ServerEntityEvents.ENTITY_UNLOAD.register(HeadUtils::removePlayerFromCache)
 
