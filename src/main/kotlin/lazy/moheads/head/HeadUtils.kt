@@ -106,8 +106,6 @@ object HeadUtils {
 
         head.addTagElement("SkullOwner", tag)
 
-        println("head with $tag")
-
         head.hoverName = TextComponent(styleRegName(regName))
         return head
     }
