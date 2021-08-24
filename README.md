@@ -29,6 +29,7 @@
 * [Forge Version, but from other developer](https://www.curseforge.com/minecraft/mc-mods/just-player-heads)
 
 ![requires](https://user-images.githubusercontent.com/52864251/129172690-522f7c99-a346-431f-ba12-cdc470282770.png)
+![fabric-api](https://user-images.githubusercontent.com/52864251/130688940-675a4ed4-5bac-4c87-80ce-47685c86114a.png)
 
 ### Description:
 Mod that adds a way to get mob heads by killing them.
